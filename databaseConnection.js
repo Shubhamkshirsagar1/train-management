@@ -44,4 +44,25 @@ connectWithRetry();
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
+/* Import Models */
+db.User = require("./app/models/user.model")(sequelize, DataTypes);
+db.Seat = require("./app/models/seat.model")(sequelize, DataTypes);
+db.Reservation = require("./app/models/reservation.model")(
+  sequelize,
+  DataTypes
+);
+
+/* Define Relationships */
+db.User.hasMany(db.Reservation, { foreignKey: "user_id" });
+db.Reservation.belongsTo(db.User, { foreignKey: "user_id" });
+
+db.Seat.hasMany(db.Reservation, {
+  foreignKey: "seat_number",
+  sourceKey: "seat_number",
+});
+db.Reservation.belongsTo(db.Seat, {
+  foreignKey: "seat_number",
+  targetKey: "seat_number",
+});
+
 module.exports = db;
