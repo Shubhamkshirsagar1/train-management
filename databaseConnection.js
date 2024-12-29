@@ -1,23 +1,40 @@
 const { Sequelize, DataTypes } = require("sequelize");
 require("dotenv").config();
 
-const sequelize = new Sequelize(
-  process.env.DATABASE_DATABASE,
-  process.env.DATABASE_USERNAME,
-  process.env.DATABASE_PASSWORD,
-  {
-    host: process.env.DATABASE_HOST,
-    port: process.env.DATABASE_PORT,
-    dialect: process.env.DATABASE_DIALECT,
-    pool: {
-      max: 10,
-      min: 0,
-      acquire: 100000,
-      idle: 10000,
+// const sequelize = new Sequelize(
+//   process.env.DATABASE_DATABASE,
+//   process.env.DATABASE_USERNAME,
+//   process.env.DATABASE_PASSWORD,
+//   {
+//     host: process.env.DATABASE_URL,
+//     port: process.env.DATABASE_PORT,
+//     dialect: process.env.DATABASE_DIALECT || "postgres",
+//     pool: {
+//       max: 10,
+//       min: 0,
+//       acquire: 100000,
+//       idle: 10000,
+//     },
+//     logging: console.log,
+//   }
+// );
+
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: "postgres",
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
     },
-    logging: console.log,
-  }
-);
+  },
+  pool: {
+    max: 10,
+    min: 0,
+    acquire: 100000,
+    idle: 10000,
+  },
+  logging: console.log,
+});
 
 const db = {};
 
