@@ -10,6 +10,12 @@ exports.reserveSeats = async (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  if (req.user.role === "admin") {
+    return res
+      .status(403)
+      .json({ message: "Admins are not allowed to book tickets." });
+  }
+
   if (seat_count < 1 || seat_count > 7) {
     return res
       .status(400)
@@ -93,6 +99,20 @@ exports.resetSeats = async (req, res) => {
   }
 };
 
+exports.resetAllSeats = async (req, res) => {
+  try {
+    await db.Seat.update({ status: "available" }, { where: {} });
+
+    await db.Reservation.destroy({ where: {} });
+
+    res
+      .status(200)
+      .json({ message: "All seats have been reset successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Error resetting seats.", error });
+  }
+};
+
 exports.getAllSeats = async (req, res) => {
   try {
     const seats = await db.Seat.findAll();
@@ -104,15 +124,14 @@ exports.getAllSeats = async (req, res) => {
 
 exports.getUserSeats = async (req, res) => {
   try {
-    const userId = req.user.id; // Extract user ID from the authenticated request
+    const userId = req.user.id;
 
-    // Fetch seats reserved by the user
     const reservations = await db.Reservation.findAll({
       where: { user_id: userId },
       include: [
         {
           model: db.Seat,
-          attributes: ["seat_number", "row", "status"], // Include seat details
+          attributes: ["seat_number", "row", "status"],
         },
       ],
     });
@@ -123,7 +142,6 @@ exports.getUserSeats = async (req, res) => {
         .json({ message: "No seats reserved by the user." });
     }
 
-    // Map the reservations to return only relevant details
     const userSeats = reservations.map((reservation) => ({
       seat_number: reservation.Seat.seat_number,
       row: reservation.Seat.row,
@@ -133,5 +151,42 @@ exports.getUserSeats = async (req, res) => {
     res.status(200).json(userSeats);
   } catch (error) {
     res.status(500).json({ message: "Error fetching user seats.", error });
+  }
+};
+exports.getBookedUsers = async (req, res) => {
+  try {
+    const bookedUsers = await db.User.findAll({
+      include: [
+        {
+          model: db.Reservation,
+          required: true, // Ensures only users with reservations are included
+          include: [
+            {
+              model: db.Seat,
+              attributes: ["seat_number", "row", "status"],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!bookedUsers.length) {
+      return res.status(404).json({ message: "No bookings found." });
+    }
+
+    const result = bookedUsers.map((user) => ({
+      user_id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      reservations: user.Reservations.map((res) => ({
+        seat_number: res.Seat.seat_number,
+        row: res.Seat.row,
+      })),
+    }));
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching booked users.", error });
   }
 };

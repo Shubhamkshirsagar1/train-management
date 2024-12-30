@@ -43,3 +43,6 @@ yarn.lock
 
 # Generated Files (Optional)
 coverage/
+
+# Local Netlify folder
+.netlify

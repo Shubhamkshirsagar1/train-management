@@ -8,6 +8,8 @@ router.get("/", seatController.getAllSeats);
 router.get("/user-seats", protect, seatController.getUserSeats);
 router.post("/reserve", protect, seatController.reserveSeats);
 router.post("/cancel", protect, seatController.cancelReservation);
-router.post("/reset", protect, authorize(["admin"]), seatController.resetSeats);
+// router.post("/reset", protect, authorize(["admin"]), seatController.resetSeats);
+router.get("/booked-users", protect, authorize(["admin"]), seatController.getBookedUsers);
+router.post("/reset-seats", protect, authorize(["admin"]), seatController.resetAllSeats);
 
 module.exports = router;
