@@ -6,7 +6,6 @@ const setupRoutes = require("./routes");
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const serverless = require("serverless-http");
 
 const PORT = process.env.PORT;
 console.log(PORT);
@@ -26,4 +25,3 @@ app.listen(8080, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-module.exports = serverless(app);
